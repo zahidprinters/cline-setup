@@ -1,0 +1,10 @@
+{
+  "name": "cline-setup",
+  "description": "Portable, verified Cline global configuration: rules, guard plugins, project scaffold, MCP servers",
+  "author": "Nadeem",
+  "license": "MIT",
+  "created": "2026-09-26",
+  "appliesTo": "Cline CLI and the VS Code extension (both read ~/.cline/)",
+  "install": "pwsh -File install.ps1 && pwsh -File gen-machine-md.ps1 && pwsh -File verify.ps1",
+  "notes": "machine.md is generated per machine, never shipped. branch-protector ships patched; see docs/PLUGIN-PATCH.md"
+}

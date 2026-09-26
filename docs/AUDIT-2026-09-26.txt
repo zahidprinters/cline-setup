@@ -1,0 +1,105 @@
+PLUGIN INTERCEPTION AUDIT - 2026-09-26
+========================================
+
+METHOD NOTE (revised)
+---------------------
+An earlier revision recorded branch-protector as failing on the strength of a
+Node unit harness. That harness was itself defective: it stubbed currentBranch
+by capturing BRANCH when the stub was created, so every "should block" case
+reported "allowed". The harness result was discarded, not acted on.
+
+The verdict below rests on (a) a live Cline session and (b) a corrected
+harness that runs the ORIGINAL and PATCHED logic side by side.
+Original 8/18, patched 18/18. No production code was changed to satisfy a test.
+
+
+env-blocker    PASS  (live session, both directions)
+  - .env          -> tool output was
+                     "Blocked read_files: reading environment secret files"
+                     (beforeTool fired; the read never executed)
+  - .env.example  -> ALLOWED, content returned. No over-blocking.
+
+
+branch-protector  PATCHED AND VERIFIED LIVE
+
+  ORIGINAL (official)  8/18 in the corrected harness. Two defects:
+    1. reads toolCall.input.command (string); the runtime sends
+       toolCall.input.commands (string[]). "if (!command) return" therefore
+       exited on every real call. Confirmed live before the patch: a
+       "git push origin master" on master reached git unblocked.
+    2. /^\s*git\s+push\b/ is anchored, so "cd x && git push" never matched.
+    env-blocker does not share defect 1; it reads command ?? commands ?? cmd.
+
+  PATCH: extract command|commands|cmd and test each; split the line on
+  && || ; newline | and test every segment. The guarded branch is the one
+  checked out, not a refspec from the command, so a crafted refspec cannot
+  smuggle a push through.
+
+  A third defect appeared only in the live run and is now fixed:
+    context is not always supplied; context.cwd threw
+    "Cannot read properties of undefined (reading 'cwd')" and aborted the
+    task. Now: context?.cwd ?? process.cwd().
+
+  LIVE RUNTIME RESULTS (real Cline sessions, disposable repo, fake remote)
+    git push origin master        -> BLOCKED   (after the cwd fix)
+    git push origin main          -> BLOCKED
+    git push origin release/test  -> BLOCKED   (glob works)
+    git push origin feature/test  -> ALLOWED   (no over-blocking)
+    cd bptest && git push origin master -> BLOCKED  (chain fix confirmed)
+    git push --force-allow origin master -> reached git (bypass works)
+
+  Note: on the first master attempt Cline declined on its own, citing the
+  global isolation.md rule, and never issued a tool call. That is the
+  secondary guard, not the plugin. The later runs forced a tool call so the
+  beforeTool hook was genuinely exercised.
+
+  Installed: 3,343 B. Original preserved at
+  D:\rollback\branch-protector-ORIGINAL-index.ts (1,527 B, sha256 verified
+  identical to the file before the patch). If a future Cline update replaces
+  the plugin, compare against that backup.
+
+
+RULE AUTO-LOAD  PASS (live session)
+  - Canary in ~/.cline/rules/ was recalled with no hint about its location.
+
+
+NOT MEASURED
+  - workflow.md token cost. Requires reading token counts from a real
+    session; a character count would be a guess.
+
+  KNOWN-GOOD MARKER (use this, not file size)
+    sha256 : 0F71EA0AE0786C691E75C5112E08CF4B2B7DA242D44A256C1AD91D57BA95171A
+    bytes  : 3343
+    dir    : branch-protector-9cfb2c234999
+  After any Cline or plugin update, run:
+    (Get-FileHash "$env:USERPROFILE\.cline\plugins\_installed\official\branch-protector-*\package\index.ts" -Algorithm SHA256).Hash
+  If it differs, RERUN the six live cases before reinstalling anything.
+  A new hash may be a genuine upstream fix, not a regression - test, do not
+  assume the patch is needed again.
+
+RULE TOKEN COST - MEASURED 2026-09-26
+=====================================
+Controlled A/B. Identical prompt ("Reply with exactly one word: OK"),
+same config dir, same provider/model. Only variable: presence of
+~/.cline/rules. Reported inputTokens from the session JSON.
+
+  Session A  rules loaded    11461, 11461, 11461   avg 11461
+  Session B  rules absent     6990,  6990,  6990   avg  6990
+  ------------------------------------------------------------------
+  DIFFERENCE                  4471 tokens  (39.0% of the A session)
+
+  Zero variance in both arms, so the figure is exact, not an estimate.
+  18,250 bytes of rules ~= 4,471 tokens ~= 3.27 bytes/token, which matches
+  normal English prose plus markdown tables.
+
+  Interpretation: the 6,990 floor is Cline's own system prompt, tool
+  schemas and the MCP server definitions. The rules add 4,471 on top of
+  that, on EVERY request, before any project file is read.
+
+  Per-file share is proportional to size; workflow.md at 8,283 B is ~45%
+  of the total. If this ever needs trimming, workflow.md is the target -
+  but it is also the file carrying the task-loop and Memory Bank rules,
+  so cutting it trades correctness for context.
+
+  Method note: rules were MOVED to a temp stash, not deleted, and restored
+  byte-identical (18,250 B, 5 sha256 values recorded) immediately after.

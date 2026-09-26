@@ -1,0 +1,25 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "transport": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "@playwright/mcp@latest"
+        ]
+      },
+      "autoApprove": [
+        "browser_navigate",
+        "browser_snapshot",
+        "browser_take_screenshot"
+      ]
+    },
+    "context7": {
+      "transport": {
+        "type": "streamableHttp",
+        "url": "https://mcp.context7.com/mcp"
+      }
+    }
+  }
+}

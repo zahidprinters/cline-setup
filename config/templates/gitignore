@@ -1,0 +1,136 @@
+# ============================================================
+#  Gitignore - shared stack: ESP-IDF, Arduino, C/C++, Python,
+#  PHP, Node/JS, HTML/CSS.
+#
+#  Sectioned so you can delete the ones your project never uses.
+#  Every section is prefixed with the language it serves.
+#  When you add a dependency, add its ignore rule HERE the same
+#  day - do not wait until build output shows up in git status.
+# ============================================================
+
+
+# ---------- Secrets - never commit ----------
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*.pem
+*.key
+!certs/*.pem
+
+
+# ---------- ESP-IDF (esp-idf) ----------
+# Build tree. Large, fully regenerable from source + sdkconfig.
+build/
+# Generated on set-target; sdkconfig itself IS committed.
+sdkconfig.old
+# Fetched by the component manager; pinned by dependencies.lock.
+managed_components/
+dependencies.lock
+# Backup files written by the Arduino-as-component integration.
+*.bak
+# Target-specific partitions / images produced at link time.
+*.elf
+*.map
+*.bin
+*.out
+
+
+# ---------- Arduino (arduino) ----------
+# IDE-managed build output.
+build/
+# The IDE rewrites the sketch during compilation.
+*.ino.bak
+# Uploaded images if you flash from the IDE.
+*.hex
+
+
+# ---------- C / C++ (c, cpp) ----------
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+# CMake / build systems
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+# Debuggers
+*.dSYM/
+core
+vgcore.*
+
+
+# ---------- Python (python) ----------
+__pycache__/
+*.py[cod]
+*$py.class
+# Virtualenvs
+.venv/
+venv/
+env/
+# Packaging / test / type caches
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+
+# ---------- PHP (php) ----------
+# Composer dependencies (php docs said: check composer.json first)
+vendor/
+composer.lock.bak
+# XAMPP / local server state
+*.log
+
+
+# ---------- Node / JavaScript (nodejs) ----------
+node_modules/
+.npm/
+.yarn/
+# Bundlers
+dist/
+.next/
+.vite/
+.cache/
+
+
+# ---------- Web frontend output (html, css) ----------
+# Playwright MCP writes traces/screenshots here
+.playwright-mcp/
+test-results/
+playwright-report/
+# Vite build output (if you use Vite instead of the generic dist/)
+web/dist/
+
+
+# ---------- Cline + agent scratch ----------
+# NOTE: .cline/rules/ is intentionally NOT ignored - project rules
+# are documentation and should be committed. Scratch is not.
+temp/
+logs/
+*.log
+
+
+# ---------- Editors / IDEs (editors) ----------
+.vscode/
+!.vscode/settings.json.example
+.idea/
+.vs/
+*.swp
+*.swo
+*~
+
+
+# ---------- OS (os) ----------
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/

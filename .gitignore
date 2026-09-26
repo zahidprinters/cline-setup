@@ -1,0 +1,32 @@
+# ---- Secrets: never commit ----
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+*.pem
+*.key
+# Cline credentials live outside this repo
+secrets.json
+*_accountId*
+
+# ---- PowerShell artifacts ----
+*.bak
+*.pre-patch.bak
+*.tmp.*
+
+# ---- Node ----
+node_modules/
+package-lock.json
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+
+# ---- Editors / OS ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

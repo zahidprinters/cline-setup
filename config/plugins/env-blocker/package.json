@@ -1,0 +1,13 @@
+{
+  "name": "env-blocker",
+  "private": true,
+  "cline": {
+    "plugins": [
+      {
+        "paths": [
+          "./package/index.ts"
+        ]
+      }
+    ]
+  }
+}
