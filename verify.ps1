@@ -41,6 +41,15 @@ foreach ($r in @('ponytail.md', 'workflow.md', 'isolation.md', 'docs-standard.md
 }
 
 # --- tools / templates ---
+Write-Host 'skills'
+$g = Join-Path $home_ 'skills'
+if (Test-Path $g) {
+    Get-ChildItem $g -Directory | ForEach-Object {
+        if (Test-Path (Join-Path $_.FullName 'SKILL.md')) { Pass "skills/$($_.Name)" }
+        else { Soft "skills/$($_.Name) has no SKILL.md" }
+    }
+} else { Soft 'no global skills directory' }
+
 Write-Host 'tools and templates'
 if (Test-Path (Join-Path $home_ 'tools\serial_capture.py')) {
     Pass 'tools/serial_capture.py'

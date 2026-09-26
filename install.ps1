@@ -84,6 +84,22 @@ Get-ChildItem (Join-Path $repo 'config\tools') -File | ForEach-Object {
     Ok "tools/$($_.Name)"
 }
 
+# --- 2b. skills ---
+# Skills are on-demand: only name+description load on every request, the body
+# loads when triggered. The four shipped here cost ~367 tokens of metadata,
+# which is why the set is curated rather than "all 38 from upstream".
+Say '2b. skills'
+$skillSrc = Join-Path $repo 'config\skills'
+if (Test-Path $skillSrc) {
+    New-Item -ItemType Directory (Join-Path $home_ 'skills') -Force | Out-Null
+    Get-ChildItem $skillSrc -Directory | ForEach-Object {
+        Copy-Item $_.FullName (Join-Path $home_ 'skills') -Recurse -Force
+        Ok "skills/$($_.Name)"
+    }
+} else {
+    Warn 'config/skills not present - skipping'
+}
+
 # --- 3. templates ---
 Say '3. templates'
 New-Item -ItemType Directory (Join-Path $home_ 'templates') -Force | Out-Null

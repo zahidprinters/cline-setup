@@ -132,6 +132,7 @@ cline-setup/
 ├── project.json
 ├── config/                        what gets installed
 │   ├── rules/                     4 portable rules (machine.md NOT here)
+│   ├── skills/                    review-team, skill-creator, frontend-design
 │   ├── tools/                     serial_capture.py
 │   ├── templates/                 new-project.ps1, gitignore, map, memory bank
 │   ├── plugins/                   branch-protector (patched + original), env-blocker
@@ -145,9 +146,9 @@ Two things are deliberately **absent**:
 
 - `machine.md` is generated per machine, never committed. Committing it would
   ship rules that confidently state the wrong paths.
-- `skills/` is not vendored. Skills are installed per machine with
-  `cline skill install`; vendoring a large third-party skill whose provenance
-  cannot be verified is not worth it.
+- The other 34 upstream `cline/skills`. Their combined metadata (~4,047 tokens)
+  costs more than the entire rule set, and they target services this machine
+  does not use. Three are vendored instead - see **Skills** below.
 
 ## Creating a new project
 
@@ -297,7 +298,6 @@ pwsh -File gen-machine-md.ps1 -Force
 | Item | Why it stays out |
 |---|---|
 | `machine.md` | records paths true only on one machine; committing it ships rules that lie |
-| `skills/` | installed per machine; a vendored third-party skill has unverified provenance |
 | MCP credentials | tokens go in an environment variable, never a file |
 | `~/.cline/data/` | sessions, databases, logs - runtime state, not configuration |
 
@@ -341,3 +341,38 @@ Reference only; `gen-machine-md.ps1` is what writes `~/.cline/rules/machine.md`.
 ## Author
 
 Nadeem <zahid_printers@yahoo.com> - MIT
+## Skills
+
+Three upstream `cline/skills` are vendored, chosen to match the actual stack:
+
+| Skill | Why |
+|---|---|
+| `review-team` | 11-reviewer fleet: correctness, security, architecture, testing, UX |
+| `skill-creator` | build and benchmark your own skills |
+| `frontend-design` | web UI work; avoids generic AI aesthetics |
+
+`graphify` is installed on this machine but **not** vendored here - it predates
+this repo and its provenance could not be verified.
+
+### Why a subset, not all 38
+
+Skills are on-demand, but only the metadata loads on every request. Measured
+across all 38 upstream skills:
+
+```text
+all 38 skills    ~4,047 tokens of always-on metadata
+these 4 (global) ~367  tokens  (8% of the rules cost)
+```
+
+That is close to the cost of the entire rule set, so breadth is not free. The
+unused skills are mostly AWS, Linear, Sentry, OracleDB, Railway, Spotify and
+Cloudflare - none of which this machine touches. Install one on demand when a
+real use case appears:
+
+```powershell
+cline skill install cline/skills --skill <name>
+```
+
+> `cline skill install` writes to the **workspace**, not `~/.cline/skills`. Move
+> the folder to make it global:
+> `Move-Item "$env:USERPROFILE\.cline\data\workspaces\<ws>\.agents\skills\<name>" "$env:USERPROFILE\.cline\skills\"`
