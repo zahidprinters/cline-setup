@@ -12,7 +12,11 @@
 param([switch]$Force)
 
 $ErrorActionPreference = 'Continue'
-$out = Join-Path $env:USERPROFILE '.cline\rules\machine.md'
+# See install.ps1: $env:USERPROFILE can be stale or redirected. Resolve the
+# real profile so we never write a machine.md into a leftover sandbox.
+$profileRoot = [Environment]::GetFolderPath('UserProfile')
+if (-not $profileRoot -or -not (Test-Path $profileRoot)) { $profileRoot = $env:USERPROFILE }
+$out = Join-Path $profileRoot '.cline\rules\machine.md'
 
 if ((Test-Path $out) -and -not $Force) {
     Write-Host "machine.md exists. Re-run with -Force to regenerate." -ForegroundColor Yellow

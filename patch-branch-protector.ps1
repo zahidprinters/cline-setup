@@ -29,7 +29,11 @@ param([switch]$Revert)
 
 $ErrorActionPreference = 'Stop'
 $repo = $PSScriptRoot
-$home_ = Join-Path $env:USERPROFILE '.cline'
+# See install.ps1: resolve the real profile rather than trusting a possibly
+# stale or redirected $env:USERPROFILE.
+$profileRoot = [Environment]::GetFolderPath('UserProfile')
+if (-not $profileRoot -or -not (Test-Path $profileRoot)) { $profileRoot = $env:USERPROFILE }
+$home_ = Join-Path $profileRoot '.cline'
 $KNOWN_GOOD = '0F71EA0AE0786C691E75C5112E08CF4B2B7DA242D44A256C1AD91D57BA95171A'
 
 $dir = Get-ChildItem (Join-Path $home_ 'plugins\_installed\official') -Directory -Filter 'branch-protector*' -ErrorAction SilentlyContinue |

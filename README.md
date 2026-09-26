@@ -261,6 +261,83 @@ The goal is not to publish one person's machine configuration. The goal is a
 **repeatable development environment that configures itself for the machine on
 which it is installed**.
 
+## Live sync status
+
+**`D:\cline-setup` is the source of truth. `C:\Users\PC\.cline` is a copy.**
+
+Edit files in `config/`, commit, then reinstall. Never hand-edit `~/.cline` - a
+change made there is lost on the next sync and invisible to anyone else using
+this repo.
+
+### Workflow
+
+```powershell
+# 1. edit D:\cline-setup\config\...
+# 2. commit
+cd D:\cline-setup
+git add -A
+git commit -m "..."
+
+# 3. push the live copy back in sync
+pwsh -File install.ps1
+
+# 4. prove it
+pwsh -File verify.ps1
+```
+
+`install.ps1` is idempotent and backs up to `~/.cline/_backup-<stamp>/` first.
+`machine.md` is regenerated separately and is never committed:
+
+```powershell
+pwsh -File gen-machine-md.ps1 -Force
+```
+
+### What is deliberately NOT in this repo
+
+| Item | Why it stays out |
+|---|---|
+| `machine.md` | records paths true only on one machine; committing it ships rules that lie |
+| `skills/` | installed per machine; a vendored third-party skill has unverified provenance |
+| MCP credentials | tokens go in an environment variable, never a file |
+| `~/.cline/data/` | sessions, databases, logs - runtime state, not configuration |
+
+### Project independence
+
+No project in `D:\` references this repository, and no project depends on it.
+Global rules, `serial_capture.py` and the scaffold reach a project only through
+`~/.cline/`, which any machine can reproduce from this repo.
+
+Projects reference **tools**, never this repo:
+
+```text
+correct:  python "$env:USERPROFILE\.cline\tools\serial_capture.py" COM3 30
+wrong:    python "D:\cline-setup\config\tools\serial_capture.py" COM3 30
+```
+
+A project pointing at `D:\cline-setup` directly would break on the next clone
+elsewhere, and would survive deleting `~/.cline` - exactly the coupling this
+repo exists to remove.
+
+### Machine inventory on this PC
+
+Reference only; `gen-machine-md.ps1` is what writes `~/.cline/rules/machine.md`.
+
+| Item | Value |
+|---|---|
+| Node.js | v25.3.0 (nvm4w) |
+| Python | 3.11.9 |
+| PHP | 8.2.12 (XAMPP) |
+| Git | 2.55.0 |
+| Cline CLI | 3.0.60 |
+| **ESP-IDF (active)** | `D:\esp32-tools\esp-idf` v5.3.2 - installer-registered |
+| ESP-IDF (other) | `D:\esp32\v6.1\esp-idf` v6.1 |
+| Serial ports | COM3, COM5 |
+| Project repos | `D:\esp-idf`, `D:\esp32 audio`, `D:\New folder\cantwait`, `D:\dextop\tempn` |
+
+> **Two ESP-IDF checkouts is a live hazard.** Every command must name the active
+> one explicitly. `gen-machine-md.ps1` refuses to guess and marks the choice
+> UNVERIFIED when the installer record is missing.
+
 ## Author
 
 Nadeem <zahid_printers@yahoo.com> - MIT

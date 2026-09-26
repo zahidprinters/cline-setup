@@ -25,7 +25,17 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repo = $PSScriptRoot
-$home_ = Join-Path $env:USERPROFILE '.cline'
+# Resolve the home directory robustly. $env:USERPROFILE can be stale or
+# redirected (a leftover sandbox, a CI override), which would make every path
+# below point somewhere that is not this machine. Prefer the real profile.
+$profileRoot = [Environment]::GetFolderPath('UserProfile')
+if (-not $profileRoot -or -not (Test-Path $profileRoot)) {
+    $profileRoot = $env:USERPROFILE
+}
+if ($env:USERPROFILE -ne $profileRoot) {
+    Write-Host "  note: USERPROFILE was '$env:USERPROFILE'; using '$profileRoot' instead." -ForegroundColor Yellow
+}
+$home_ = Join-Path $profileRoot '.cline'
 $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $backup = Join-Path $home_ "_backup-$stamp"
 

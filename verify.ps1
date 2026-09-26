@@ -10,7 +10,15 @@
 [CmdletBinding()]
 param()
 
-$home_ = Join-Path $env:USERPROFILE '.cline'
+# See install.ps1: $env:USERPROFILE can be stale or redirected, which would
+# make every check below report a false failure. Resolve the real profile.
+$profileRoot = [Environment]::GetFolderPath('UserProfile')
+if (-not $profileRoot -or -not (Test-Path $profileRoot)) { $profileRoot = $env:USERPROFILE }
+if ($env:USERPROFILE -ne $profileRoot) {
+    Write-Host "  note: USERPROFILE was '$env:USERPROFILE'; checking '$profileRoot' instead." -ForegroundColor Yellow
+}
+$home_ = Join-Path $profileRoot '.cline'
+
 $fail = 0
 $warn = 0
 
